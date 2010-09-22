@@ -1,273 +1,15 @@
-//  Win32Perl.h
-//  -----------
-//  This header is used exclusively to provide seemless support for Perl extensions
-//  under the Win32 platform.  It could easily be adapted to other platforms as well.
-//   
-//  The bulk of this header is to provide extension development without necesitating 
-//  the need to adopt XS or other meta language formats.
-//  We prefer to use our own C/C++ coding styles than that which XS dictates.
-//  
-//  This file adapts to the version of Perl being used: 5.003, 5.004, 5.005, 5.006
-//  5.008 with or without support for PERL_OBJECT.
-//  
-//  1999.11.14 roth   
-//
-//
-//  TO USE THIS:
-//      This header is intended to be used in conjunction with the
-//      preWin32Perl.h header.
-//      Simply add the follwing line to your Perl extension:
-//
-//          #include <Win32Perl.h>
-//
-//      That is it. DO NOT add references to extern.h, Perl.h or XSub.h in
-//      your extension. The preWin32Perl.h already does this. It is important
-//      to abide by this because the order of defining macros and including
-//      headers is important!
-//  2003.03.01 roth
-//
-//  (c) 1998-2003 Dave Roth
-//  Courtesy of Roth Consulting
-//  http://www.roth.net/
+#ifndef _XS_Win32Perl_h_
 
-#ifndef _WIN32PERL_H_
-
-#ifndef _PREWIN32_PERL_H
-    #include <PreWin32Perl.h>
-#endif // _PREWIN32_PERL_H
-
-#include <tchar.h>
-#include "patchlevel.h"
-
-//
-//  Various macro definitions for various Perl builds (refer to preWin32Perl.h):
-//  --------------------------------------------------
-//      v5.008 Core (default from ActiveState.com)
-//          WIN32,_WINDOWS,EMBED,MSWIN32,HAVE_DES_FCRYPT,MULTIPLICITY,PERL_IMPLICIT_CONTEXT,PERL_IMPLICIT_SYS,PERL_MSVCRT_READFIX,PERL_NO_GET_CONTEXT,PERL_POLLUTE,USE_ITHREADS,NO_STRICT,USE_PERLIO,USE_ITHREADS,USE_LARGE_FILES
-//
-//      v5.006 Core (default from ActiveState.com)
-//          WIN32,_WINDOWS,EMBED,MSWIN32,HAVE_DES_FCRYPT,MULTIPLICITY,PERL_IMPLICIT_CONTEXT,PERL_IMPLICIT_SYS,PERL_MSVCRT_READFIX,PERL_NO_GET_CONTEXT,PERL_POLLUTE,USE_ITHREADS
-//          
-//      v5.005 ActiveState
-//          EMBED,MSWIN32,PERL_OBJECT
-//
-//      v5.005 Core
-//          EMBED,MSWIN32
-//
-//      v5.004 ActiveState
-//          EMBED,MSWIN32,PERL_OBJECT
-
-#   define _WIN32PERL_H_
-#   define _WIN32PERL_H_VERSION     20080321
-#   ifdef PERLVER
-//#       undef PERLVER
-#   endif // PERLVER
-
-
-// Update REVISION and VERSION values. Some older versions did not set this
-#ifndef PERL_VERSION
-//  Now test for version 5.005 of perl...
-#	if PATCHLEVEL == 5
-#       define  PERL_REVISION           5
-#       define  PERL_VERSION            5
-#   else
-#       ifdef PERL_OBJECT
-#           define PERL_REVISION        5
-#           define PERL_VERSION         4   
-#       else
-#           define PERL_REVISION        5
-#           define PERL_VERSION         3
-#       endif // PERL_OBJECT
-#   endif // PATCHLEVEL == 5    
-#endif // ! PERL_VERSION
-
-
-#define PERL_OBJECT_INSTANCE_DELIMITER      ,
-
-#if PERL_VERSION == 10
-#   define  PERL_VER_STRING                 "5.10"
-#   define	FILE_EXTENSION	                "DLL"
-//#   ifdef PERL_OBJECT
-//  v5.8 handled things as 5.6 did:
-//      The pTHX macro is the FULL prototype such as: register PerlInterpreter *my_perl
-//      and aTHX macro is the argument such as: my_perl
-//  Then under certain screwed up conditions pTHX becomes void. Yes void. Sigh. So
-//  this, of course, breaks everything since void itself is not a valid arguement. Idiots.
-//  Luckily if this occurs USE_THREADS is defined so we can use this to test...
-#   ifdef USE_THREADS
-#       define  PERL_OBJECT_CLASS           perl_thread*
-#		define  PERL_OBJECT_CLASS_STRING   "pTHX"
-#       define  PERL_OBJECT_PROTO           pTHXo_
-#       define  PERL_OBJECT_PROTO1          perl_thread *thr
-#		define  PERL_OBJECT_ARGS            aTHXo_
-#       define  PERL_OBJECT_ARG             aTHXo
-#       define  PERL_OBJECT_INSTANCE        aTHX
-#	  else
-#       define  PERL_OBJECT_INSTANCE        my_perl
-#       define  PERL_OBJECT_CLASS           PerlInterpreter*
-#       define  PERL_OBJECT_CLASS_STRING    "PerlInterpreter"
-#   endif
-#   pragma message( "...using the " PERL_OBJECT_CLASS_STRING )
+#pragma message( "Processing XS_Win32Perl.h" )
+#ifdef _DEBUG
+	#pragma message( "    ...in _DEBUG mode" )
 #endif
 
-#if PERL_VERSION == 8
-#   define  PERL_VER_STRING                 "5.8"
-#   define	FILE_EXTENSION	                "DLL"
-//#   ifdef PERL_OBJECT
-//  v5.8 handled things as 5.6 did:
-//      The pTHX macro is the FULL prototype such as: register PerlInterpreter *my_perl
-//      and aTHX macro is the argument such as: my_perl
-//  Then under certain screwed up conditions pTHX becomes void. Yes void. Sigh. So
-//  this, of course, breaks everything since void itself is not a valid arguement. Idiots.
-//  Luckily if this occurs USE_THREADS is defined so we can use this to test...
-#   ifdef USE_THREADS
-#       define  PERL_OBJECT_CLASS           perl_thread*
-#		define  PERL_OBJECT_CLASS_STRING   "pTHX"
-#       define  PERL_OBJECT_PROTO           pTHXo_
-#       define  PERL_OBJECT_PROTO1          perl_thread *thr
-#		define  PERL_OBJECT_ARGS            aTHXo_
-#       define  PERL_OBJECT_ARG             aTHXo
-#       define  PERL_OBJECT_INSTANCE        aTHX
-#	  else
-#       define  PERL_OBJECT_INSTANCE        my_perl
-#       define  PERL_OBJECT_CLASS           PerlInterpreter*
-#       define  PERL_OBJECT_CLASS_STRING    "PerlInterpreter"
-#   endif
-#   pragma message( "...using the " PERL_OBJECT_CLASS_STRING )
-#endif
-
-#if PERL_VERSION == 6
-#   define  PERL_VER_STRING                 "5.6"
-#   define	FILE_EXTENSION	                "DLL"
-//#   ifdef PERL_OBJECT
-//  Starting with 5.6 this is really screwy:
-//      The pTHX macro is the FULL prototype such as: register PerlInterpreter *my_perl
-//      and aTHX macro is the argument such as: my_perl
-//  Then under certain screwed up conditions pTHX becomes void. Yes void. Sigh. So
-//  this, of course, breaks everything since void itself is not a valid arguement. Idiots.
-//  Luckily if this occurs USE_THREADS is defined so we can use this to test...
-#   ifdef USE_THREADS
-#       define  PERL_OBJECT_CLASS          perl_thread*
-#		define  PERL_OBJECT_CLASS_STRING   "pTHX"
-// Original before hacking on 20030228...
-//#       define  PERL_OBJECT_PROTO           pTHXo_
-//#       define  PERL_OBJECT_PROTO1          perl_thread *thr
-//#		define  PERL_OBJECT_ARGS            aTHXo_
-//#       define  PERL_OBJECT_ARG             aTHXo
-#       define  PERL_OBJECT_PROTO           pTHXo_     
-#       define  PERL_OBJECT_PROTO1          pTHX
-#		define  PERL_OBJECT_ARGS            aTHXo_
-#       define  PERL_OBJECT_ARG             aTHXo
-#       define  PERL_OBJECT_INSTANCE        aTHX
-#	else 
-#       define  PERL_OBJECT_INSTANCE        my_perl
-#       define  PERL_OBJECT_CLASS           PerlInterpreter*
-#       define  PERL_OBJECT_CLASS_STRING    "PerlInterpreter"
-#   endif
-#   pragma message( "...using the " PERL_OBJECT_CLASS_STRING )
-#endif
-
-#if PERL_VERSION == 5
-#   define  PERL_VER_STRING                 "5.005"
-#   define	FILE_EXTENSION	                "DLL"
-#   ifdef PERL_OBJECT
-#       define  PERL_OBJECT_INSTANCE        pPerl
-#       define  PERL_OBJECT_CLASS           CPerlObj*
-#       define  PERL_OBJECT_CLASS_STRING    "CPerlObj"
-#   else
-//      NOTE: Do not define the PERL_CLASS_OBJECT since it is used
-//            to determine what class is used for the Perl interpreter.
-//            Here we don't use one.
-#       define  PERL_OBJECT_PROTO
-#       define  PERL_OBJECT_PROTO1
-#		define  PERL_OBJECT_ARGS
-#       define  PERL_OBJECT_ARG
-#   endif // PERL_OBJECT
-#endif
-
-#if PERL_VERSION == 4
-#   define  PERL_VER_STRING                 "5.004"
-#   define  FILE_EXTENSION                  "DLL"
-    //  Define our own macros here for v5.004.  This way
-    //  we won't get the comma char messed with anything since these macros
-    //  must not resolve to anything
-#   define  PERL_BRAND                      "Core Distribution"
-//      NOTE: Do not define the PERL_CLASS_OBJECT since it is used
-//            to determine what class is used for the Perl interpreter.
-//            Here we don't use one.
-#       define  PERL_OBJECT_PROTO
-#       define  PERL_OBJECT_PROTO1
-#		define  PERL_OBJECT_ARGS
-#       define  PERL_OBJECT_ARG
-#endif
-
-#if PERL_VERSION == 3
-#   define  PERL_VER_STRING                 "5.003"
-#   ifdef PERL_OBJECT
-#       define  FILE_EXTENSION              "PLL"
-#       define  PERL_OBJECT_INSTANCE        pPerl
-#       define  PERL_OBJECT_CLASS           CPerl*
-#       define  PERL_OBJECT_CLASS_STRING    "CPerl"
-#   else // ! PERL_OBJECT
-#       define  FILE_EXTENSION              "DLL"
-//      NOTE: Do not define the PERL_CLASS_OBJECT since it is used
-//            to determine what class is used for the Perl interpreter.
-//            Here we don't use one.
-#       define  PERL_OBJECT_PROTO
-#       define  PERL_OBJECT_PROTO1
-#		define  PERL_OBJECT_ARGS
-#       define  PERL_OBJECT_ARG
-#   endif // PERL_OBJECT
-#endif // SUB_VERSION
+	// preWin32Perl.h will load the Perl releated headers
+	#include "preWin32Perl.h"
 
 
-//  Now we test for PERL_OBJECT again to create the object macros...
-
-#ifdef PERL_OBJECT
-#   define  PERL_BRAND          "ActiveState"
-#else // PERL_OBJECT
-#   define  PERL_BRAND          "Core Distribution"
-#endif // PERL_OBJECT
-
-#ifndef PERL_OBJECT_PROTO
-#   define  PERL_OBJECT_PROTO   PERL_OBJECT_CLASS PERL_OBJECT_INSTANCE PERL_OBJECT_INSTANCE_DELIMITER
-#   define  PERL_OBJECT_PROTO1  PERL_OBJECT_CLASS PERL_OBJECT_INSTANCE
-#   define  PERL_OBJECT_ARGS    PERL_OBJECT_INSTANCE PERL_OBJECT_INSTANCE_DELIMITER
-#   define  PERL_OBJECT_ARG     PERL_OBJECT_INSTANCE
-#endif
-
-#define PERLVER  "v" PERL_VER_STRING " (" PERL_BRAND ") Win32 Perl"
-
-#ifdef H_PERL    //  Do this only if Perl.h was called
-#   pragma message ( "  * Using " PERLVER )
-#   ifdef PERL_OBJECT_CLASS
-#       pragma message( "    - Perl Class: " PERL_OBJECT_CLASS_STRING )
-#   endif   //  PERL_OBJECT_CLASS
-#   pragma message( "\n  ================================================================================\n\n" )
-#endif // H_PERL
-
-//  Some macros are no longer defined unless 
-//  PERL_POLLUTE is defined. By default v5.006 does *not*
-//  define this macro.
-#ifndef PERL_POLLUTE
-# ifndef na
-#   define na			PL_na
-# endif
-
-# ifndef sv_no
-#   define sv_no  PL_sv_no
-# endif
-
-# ifndef sv_undef
-#   define sv_undef		PL_sv_undef
-# endif
-
-# ifndef sv_yes
-#   define sv_yes     PL_sv_yes
-# endif
-
-#endif
-
+//	#include XS_Win32Perlv2.h
 
     ///////////////////////////////////////////////////////////////////////////////
     //  Declare our standard extension macros for easy Perl extension coding... 
@@ -286,7 +28,9 @@
     //         
     //      EXTENSION_RETURN;   //  Win32Perl.h return declaration
     //  }
-	  
+
+/*	////////////////// BEGIN DEPRECATED CODE /////////////////////
+	
 	// Number of elements we can push onto the return stack
 	// before having to extend the stack.
     #define DEFAULT_PERL_STACK_SIZE		5		
@@ -302,6 +46,8 @@
 									    iStackCount = DEFAULT_PERL_STACK_SIZE;	\
 									    EXTEND( sp, iStackCount );				\
 								    }
+*/	////////////////// END DEPRECATED CODE /////////////////////
+
 
     /////////////////////////////////////////////////////////////
     //  Return Stack Macros
@@ -325,8 +71,8 @@
     //      PUSH_HV(x)........Push a hash onto the return stack.
 
 
-    #define POP_SV              POPs;                                           \
-                                iNumOfReturnStackElements--
+    #define POP_SV              POPs
+                                
                                 
     //  Push an IV value onto the return stack...
     #define PUSH_IV(x)          CHECK_PERL_STACK_SIZE;                                                      \
@@ -394,19 +140,20 @@
     //  HASH Macros
 
     //  The hash retrieval macros. These all have a prototype of: HASH_GET_xx( pHash, szKeyName )
-    #define HASH_GET_SV(x,y)    HashGetSV( PERL_OBJECT_ARGS (x), (y) )
-    #define HASH_GET_PV(x,y)    HashGetPV( PERL_OBJECT_ARGS (x), (y) )
-    #define HASH_GET_IV(x,y)    HashGetIV( PERL_OBJECT_ARGS (x), (y) )
-    #define HASH_GET_NV(x,y)    HashGetNV( PERL_OBJECT_ARGS (x), (y) )
-    #define HASH_GET_AV(x,y)    EXTRACT_AV( HashGetSV( PERL_OBJECT_ARGS (x), (y) ) )
-    #define HASH_GET_HV(x,y)    EXTRACT_HV( HashGetSV( PERL_OBJECT_ARGS (x), (y) ) )
+    #define HASH_GET_SV(x,y)    HashGetSV( aTHX_ (x), (y) )
+    #define HASH_GET_PV(x,y)    HashGetPV( aTHX_ (x), (y) )
+    #define HASH_GET_IV(x,y)    HashGetIV( aTHX_ (x), (y) )
+    #define HASH_GET_NV(x,y)    HashGetNV( aTHX_ (x), (y) )
+    #define HASH_GET_AV(x,y)    EXTRACT_AV( aTHX_ ( (SV*) HashGetSV( aTHX_ (x), (y) ) ) )
+    #define HASH_GET_HV(x,y)    EXTRACT_HV( aTHX_ ( (SV*) HashGetSV( aTHX_ (x), (y) ) ) )
 	
     //	Extract a hash reference from an SV: SV *pSv = ST( 0 );
     //                                       HV *pHv = EXTRACT_HV( pSv );
-    #define EXTRACT_HV(x)       _EXTRACT_HV( (SV*) (x) )
+	#define EXTRACT_HV( x )     _EXTRACT_HV( aTHX_ (SV*) (x) )
 
-    inline HV *_EXTRACT_HV( SV *pSv )
-    {
+
+    inline HV* _EXTRACT_HV( pTHX_ SV *pSv )
+	{
         HV *pHv = NULL;
         if( NULL == pSv )
         {
@@ -507,18 +254,18 @@
     #define HASH_KEY_EXISTS(x,y)        ( 0 != hv_exists( (HV*)(x), (LPTSTR)(y), _tcslen( (LPTSTR)(y) ) ) )
 
     //  Define the inline hash extraction prototypes...
-    char *HashGetPV( PERL_OBJECT_PROTO HV *pHv, LPTSTR pszKeyName );
-    IV HashGetIV( PERL_OBJECT_PROTO HV *pHv, LPTSTR pszKeyName );
-    double HashGetNV( PERL_OBJECT_PROTO HV *pHv, LPTSTR pszKeyName );
-    SV *HashGetSV( PERL_OBJECT_PROTO HV *pHv, LPTSTR pszKeyName );
+    char *HashGetPV( pTHX_ HV *pHv, LPTSTR pszKeyName );
+    IV HashGetIV( pTHX_ HV *pHv, LPTSTR pszKeyName );
+    double HashGetNV( pTHX_ HV *pHv, LPTSTR pszKeyName );
+    SV *HashGetSV( pTHX_ HV *pHv, LPTSTR pszKeyName );
 
     //  Now define the inline functions used by the hash macros
-    inline LPTSTR HashGetPV( PERL_OBJECT_PROTO HV *pHv, LPTSTR pszKeyName )
+    inline LPTSTR HashGetPV( pTHX_ HV *pHv, LPTSTR pszKeyName )
     {
-        SV *pSv = HashGetSV( PERL_OBJECT_ARGS pHv, pszKeyName );
+        SV *pSv = HashGetSV( aTHX_ pHv, pszKeyName );
         if( NULL != pSv )
         {
-            return( SvPV( pSv, na ) );
+            return( SvPV_nolen( pSv ) );
         }
         else
         {
@@ -526,9 +273,9 @@
         }
     }
 
-    inline IV HashGetIV( PERL_OBJECT_PROTO HV *pHv, LPTSTR pszKeyName )
+    inline IV HashGetIV( pTHX_ HV *pHv, LPTSTR pszKeyName )
     {
-        SV *pSv = HashGetSV( PERL_OBJECT_ARGS pHv, pszKeyName );
+        SV *pSv = HashGetSV( aTHX_ pHv, pszKeyName );
         if( NULL != pSv )
         {
             return( SvIV( pSv) );
@@ -539,9 +286,9 @@
         }
     }
 
-    inline double HashGetNV( PERL_OBJECT_PROTO HV *pHv, LPTSTR pszKeyName )
+    inline double HashGetNV( pTHX_ HV *pHv, LPTSTR pszKeyName )
     {
-        SV *pSv = HashGetSV( PERL_OBJECT_ARGS pHv, pszKeyName );
+        SV *pSv = HashGetSV( aTHX_ pHv, pszKeyName );
         if( NULL != pSv )
         {
             return( SvNV( pSv) );
@@ -552,7 +299,7 @@
         }
     }
 
-    inline SV * HashGetSV( PERL_OBJECT_PROTO HV *pHv, LPTSTR pszKeyName )
+    inline SV * HashGetSV( pTHX_ HV *pHv, LPTSTR pszKeyName )
     {
         SV *pSv = NULL;
         if( ( NULL == pszKeyName ) || ( NULL == pHv ) )
@@ -600,20 +347,20 @@
     //  eg: (char*) pszString = ARRAY_GET_PV( pAv, 18 );
     //  One exception is the ARRAY_GET_PVN( pAv, dwIndex, dwLength )
     //  This will return a string of dwLength bytes long ignoring any embedded nul chars.
-    #define ARRAY_GET(x,y)          (SV*) _ARRAY_FETCH( PERL_OBJECT_ARGS (AV*)(x), (I32)(y) )
-    #define ARRAY_GET_SV(x,y)       (SV*) _ARRAY_FETCH( PERL_OBJECT_ARGS (AV*)(x), (I32)(y) )
-    #define ARRAY_GET_PV(x,y)       SvPV( _ARRAY_FETCH( PERL_OBJECT_ARGS (AV*)(x), (I32)(y) ), na )
-    #define ARRAY_GET_PVN(x,y,z)    SvPV( _ARRAY_FETCH( PERL_OBJECT_ARGS (AV*)(x), (I32)(y) ), (I32)(z) )
-    #define ARRAY_GET_IV(x,y)       SvIV( _ARRAY_FETCH( PERL_OBJECT_ARGS (AV*)(x), (I32)(y) ) )
-    #define ARRAY_GET_NV(x,y)       SvNV( _ARRAY_FETCH( PERL_OBJECT_ARGS (AV*)(x), (I32)(y) ) )
+    #define ARRAY_GET(x,y)          (SV*) ARRAY_FETCH( aTHX_ (AV*)(x), (I32)(y) )
+    #define ARRAY_GET_SV(x,y)       (SV*) ARRAY_FETCH( aTHX_ (AV*)(x), (I32)(y) )
+    #define ARRAY_GET_PV(x,y)       SvPV_nolen( ARRAY_FETCH( aTHX_ (AV*)(x), (I32)(y) ) )
+    #define ARRAY_GET_PVN(x,y,z)    SvPV( ARRAY_FETCH( aTHX_ (AV*)(x), (I32)(y) ), (I32)(z) )
+    #define ARRAY_GET_IV(x,y)       SvIV( ARRAY_FETCH( aTHX_ (AV*)(x), (I32)(y) ) )
+    #define ARRAY_GET_NV(x,y)       SvNV( ARRAY_FETCH( aTHX_ (AV*)(x), (I32)(y) ) )
     #define ARRAY_GET_AV(x,y)       EXTRACT_AV( ARRAY_GET_SV( (x), (y) ) )
     #define ARRAY_GET_HV(x,y)       EXTRACT_HV( ARRAY_GET_SV( (x), (y) ) )
 
     ////////////////////////////////////////////////////////////////////////////
     //  Extract AV from an SV:  SV *pSv = ST( 0 );
     //                          AV *pAv = EXTRACT_AV( pSv );
-    #define EXTRACT_AV(x)           _EXTRACT_AV( (SV*) (x) )    
-    inline AV *_EXTRACT_AV( SV *pSv  )
+    //	#define EXTRACT_AV(x)           _EXTRACT_AV( (SV*) (x) )    
+    inline AV *EXTRACT_AV( pTHX_ SV *pSv  )
     {
         AV *pAv = NULL;
         if( NULL == pSv )
@@ -635,7 +382,7 @@
     ////////////////////////////////////////////////////////////////////////////
     // Extract an SV* from an array 
     //
-    inline SV* _ARRAY_FETCH( PERL_OBJECT_PROTO AV *pAv, I32 Index )
+    inline SV* ARRAY_FETCH( pTHX_ AV *pAv, I32 Index )
     {
         SV *pSv = NULL;
         if( NULL != pAv )
@@ -649,17 +396,5 @@
         return( pSv );
     }
 
-#endif  //  _WIN32PERL_H_
+#endif  //  _XS_Win32Perl_h_
 
-
-
-
-/* 
-/////////////////////////////////////////////////////////////
-
-	HISTORY
-	
-	20080321	roth
-		-Added support for Perl v5.10
-
-*/

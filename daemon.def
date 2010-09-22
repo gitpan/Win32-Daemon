@@ -1,3 +1,0 @@
-LIBRARY Daemon
-EXPORTS
-	boot_Win32__Daemon

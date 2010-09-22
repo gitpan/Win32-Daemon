@@ -20,28 +20,15 @@
 
 use Win32::Daemon; 
 
-my $Script = shift @ARGV || "Callback.pl";
-my $ServiceName = shift @ARGV || "PerlTest";
-
-%Hash = (
-    name    =>  $ServiceName,
-    display =>  'Perl: Test of Win32::Daemon ($ServiceName)',
-    path    =>  "\"$^X\" \"" . Win32::GetLongPathName( scalar Win32::GetFullPathName( ".\\$Script" ) ) . "\"",
-    user    =>  '',
-    password =>  '',
-);
-
-if( Win32::Daemon::CreateService( \%Hash ) )
+my $ServiceName = shift @ARGV || 'PerlTest';
+if( Win32::Daemon::DeleteService( $ServiceName ) )
 {
-    print "Successfully added.\n";
+    print "Successfully removed.\n";
 }
 else
 {
-    print "Failed to add service: " . GetError() . "\n";
+    print "Failed to remove service: " . GetError() . "\n";
 }
-
-
-
 print "finished.\n";
 
 sub DumpError
