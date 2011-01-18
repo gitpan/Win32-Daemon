@@ -44,7 +44,7 @@
 static SERVICE_TABLE_ENTRY gpServiceTable[] =
 {
     {
-        TEXT( "GROWL!" ), ServiceMain
+        (char*)TEXT( "GROWL!" ), ServiceMain
     },
     {
         NULL,   NULL
@@ -145,7 +145,7 @@ SetTimeoutTimer( 10 );
 
                 case WM_USER_SET_TIMER:
                     ALERT( "ServiceMain: Setting timer" );
-                    ghTimer = ::SetTimer( NULL, SERVICE_THREAD_TIMER_ID, Message.wParam * DEFAULT_HANDLER_TIMEOUT_SCALE, (TIMERPROC)TimerHandler );
+                    ghTimer = ::SetTimer( NULL, SERVICE_THREAD_TIMER_ID, (UINT)Message.wParam * DEFAULT_HANDLER_TIMEOUT_SCALE, (TIMERPROC)TimerHandler );
                     break;
 
 				case WM_QUIT:
@@ -192,7 +192,7 @@ SetTimeoutTimer( 10 );
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 VOID WINAPI ServiceHandler( DWORD dwControl )
 {
-    LPTSTR pszCommand = SERVICE_CONTROL_STRING_EMPTY;
+    const char *pszCommand = SERVICE_CONTROL_STRING_EMPTY;
     DWORD dwState = gdwState;
     BOOL fUseTimer = FALSE;
 #ifdef _DEBUG

@@ -238,7 +238,7 @@ BOOL GetSidFromToken( HANDLE hToken, SID *pSid, DWORD dwSidBufferSize )
 // privilege, and a flag to either enable/disable that privilege. The
 // function will attempt to perform the desired action upon the token
 // returning TRUE if it succeeded, or FALSE if it failed.
-BOOL SetPrivilege( HANDLE hToken, LPTSTR pszPrivilege, BOOL bSetFlag )
+BOOL SetPrivilege( HANDLE hToken, const char *pszPrivilege, BOOL bSetFlag )
 {
     TOKEN_PRIVILEGES structPriv, structPrevPriv;
     LUID Luid;
@@ -550,7 +550,7 @@ BOOL StoreServiceDescription( LPCTSTR pszMachine, LPCTSTR pszServiceName, LPCTST
         _stprintf( szBuffer, REGISTRY_SERVICE_PATH TEXT( "\\%s" ), pszServiceName );
         if( ERROR_SUCCESS == RegOpenKeyEx( hRoot, szBuffer, 0, KEY_SET_VALUE, &hKey ) )
         {
-            DWORD dwSize = _tcslen( pszDescription ) * sizeof( TCHAR );
+            DWORD dwSize = (DWORD)_tcslen( pszDescription ) * sizeof( TCHAR );
             fResult = ( ERROR_SUCCESS == RegSetValueEx( hKey, REGISTRY_SERVICE_KEYWORD_DESCRIPTION, 0, REG_SZ, (LPBYTE) pszDescription, dwSize ) );
         }
         RegCloseKey( hKey );
@@ -745,7 +745,7 @@ void CallPerlRoutine( pTHX_ CV* pPerlSubroutine, DWORD dwCommand, HV* pHvContext
 			//	so update the service's state. Specify waithint value of 0
 			//	and error value of 0xFFFFFFFF to use defaults.
 			//
-			DWORD dwNewState = SvIV( pSvReturn );
+                        DWORD dwNewState = (DWORD)SvIV( pSvReturn );
 			UpdateServiceStatus( dwNewState, 0, 0xFFFFFFFF );
 		}
 
@@ -911,6 +911,9 @@ HANDLE CreateLog( LPCTSTR pszPath )
 
 /* ===============  DLL Specific  Functions  ===================  */
 //////////////////////////////////////////////////////////////////
+#if defined(__cplusplus)
+extern "C"
+#endif
 BOOL WINAPI DllMain( HINSTANCE  hinstDLL, DWORD fdwReason, LPVOID  lpvReserved )
 {
     BOOL    fResult = TRUE;
@@ -1211,7 +1214,7 @@ RegisterCallbacks( pSv )
 		RETVAL
 
 
-DWORD
+UV
 StartService( ... )
 
 	PREINIT:
@@ -1256,7 +1259,7 @@ StartService( ... )
 				if( 1 < items )
 				{
 					// Get the callback timer value...
-					uintCallbackTimerValue = SvIV( ST( 1 ) );
+                                        uintCallbackTimerValue = (int)SvIV( ST( 1 ) );
 				}
 
 				SV *pSv = ST( 0 );
@@ -1352,7 +1355,7 @@ StartService( ... )
 #endif // ENABLE_CALLBACKS
 		}
 
-		RETVAL = (DWORD) ghServiceThread;
+		RETVAL = PTR2UV(ghServiceThread);
 	}
 	
 	OUTPUT:
@@ -1374,7 +1377,7 @@ CallbackTimer( ... )
 			//
 			//	Set the callback timer
 			//
-			gCallbackTimer = SvIV( ST( 0 ) );
+                        gCallbackTimer = (int)SvIV( ST( 0 ) );
 			
 			//
 			//	If we were already stopped then we need to manually start
@@ -1478,16 +1481,16 @@ CreateService( pSvServiceInfo )
 			TCHAR szBuffer[ MAX_PATH * 2 ];
 			TCHAR szBinaryPath[ MAX_PATH ];     
 			TCHAR szDependencies[ MAX_SERVICE_DEPENDENCY_BUFFER_SIZE ]; 
-			LPTSTR pszDepend =      szDependencies;
-			LPTSTR pszMachine =     HASH_GET_PV( pHv, KEYWORD_SERVICE_MACHINE );
-			LPTSTR pszServiceName = HASH_GET_PV( pHv, KEYWORD_SERVICE_NAME );
-			LPTSTR pszDisplayName = HASH_GET_PV( pHv, KEYWORD_SERVICE_DISPLAY_NAME );
-			LPTSTR pszUser =        HASH_GET_PV( pHv, KEYWORD_SERVICE_ACCOUNT_UID );
-			LPTSTR pszPwd =         HASH_GET_PV( pHv, KEYWORD_SERVICE_ACCOUNT_PWD );
-			LPTSTR pszBinaryPath =  HASH_GET_PV( pHv, KEYWORD_SERVICE_BINARY_PATH );
-			LPTSTR pszParameters =  HASH_GET_PV( pHv, KEYWORD_SERVICE_PARAMETERS );
-			LPTSTR pszDescription = HASH_GET_PV( pHv, KEYWORD_SERVICE_DESCRIPTION );
-			LPTSTR pszLoadOrder = NULL;
+			const char *pszDepend =      szDependencies;
+			const char *pszMachine =     HASH_GET_PV( pHv, KEYWORD_SERVICE_MACHINE );
+			const char *pszServiceName = HASH_GET_PV( pHv, KEYWORD_SERVICE_NAME );
+			const char *pszDisplayName = HASH_GET_PV( pHv, KEYWORD_SERVICE_DISPLAY_NAME );
+			const char *pszUser =        HASH_GET_PV( pHv, KEYWORD_SERVICE_ACCOUNT_UID );
+			const char *pszPwd =         HASH_GET_PV( pHv, KEYWORD_SERVICE_ACCOUNT_PWD );
+			const char *pszBinaryPath =  HASH_GET_PV( pHv, KEYWORD_SERVICE_BINARY_PATH );
+			const char *pszParameters =  HASH_GET_PV( pHv, KEYWORD_SERVICE_PARAMETERS );
+			const char *pszDescription = HASH_GET_PV( pHv, KEYWORD_SERVICE_DESCRIPTION );
+			const char *pszLoadOrder = NULL;
 			DWORD  dwTag = 0;
 			DWORD dwAccess = SERVICE_ALL_ACCESS;
 			DWORD dwServiceType = SERVICE_WIN32_OWN_PROCESS;
@@ -1542,17 +1545,17 @@ CreateService( pSvServiceInfo )
 
 			if( HASH_KEY_EXISTS( pHv, KEYWORD_SERVICE_TYPE ) )
 			{
-				dwServiceType = HASH_GET_IV( pHv, KEYWORD_SERVICE_TYPE );
+                                dwServiceType = (DWORD)HASH_GET_IV( pHv, KEYWORD_SERVICE_TYPE );
 			}
 
 			if( HASH_KEY_EXISTS( pHv, KEYWORD_SERVICE_START_TYPE ) )
 			{
-				dwStartType = HASH_GET_IV( pHv, KEYWORD_SERVICE_START_TYPE );
+                                dwStartType = (DWORD)HASH_GET_IV( pHv, KEYWORD_SERVICE_START_TYPE );
 			}
 
 			if( HASH_KEY_EXISTS( pHv, KEYWORD_SERVICE_ERROR_CONTROL ) )
 			{
-				dwErrorControl = HASH_GET_IV( pHv, KEYWORD_SERVICE_ERROR_CONTROL );
+                                dwErrorControl = (DWORD)HASH_GET_IV( pHv, KEYWORD_SERVICE_ERROR_CONTROL );
 			}
 
 			OPEN_SERVICE_CONTROL_MANAGER( pszMachine )
@@ -1595,8 +1598,8 @@ DeleteService( ... )
 	PREINIT:
 		HV *pHv = NULL;
 		BOOL fResult = FALSE;
-		LPTSTR pszServiceName = NULL;
-		LPTSTR pszMachine = TEXT( "" );
+		const char *pszServiceName = NULL;
+		const char *pszMachine = TEXT( "" );
 		DWORD dwIndex = 0;
 
 	CODE:
@@ -1660,16 +1663,16 @@ ConfigureService( pSvServiceInfo )
 			TCHAR szBuffer[ MAX_PATH * 2 ];
 			TCHAR szBinaryPath[ MAX_PATH ];
 			TCHAR szDependencies[ MAX_SERVICE_DEPENDENCY_BUFFER_SIZE ];
-			LPTSTR pszMachine = HASH_GET_PV( pHv, KEYWORD_SERVICE_MACHINE );
-			LPTSTR pszServiceName = NULL;
-			LPTSTR pszDisplayName = NULL;
-			LPTSTR pszUser =        NULL;
-			LPTSTR pszPwd =         NULL;
-			LPTSTR pszBinaryPath =  NULL;
-			LPTSTR pszParameters =  NULL;
-			LPTSTR pszLoadOrder =   NULL;
-			LPTSTR pszDepend =      NULL;
-			LPTSTR pszDescription = NULL;
+			const char *pszMachine = HASH_GET_PV( pHv, KEYWORD_SERVICE_MACHINE );
+			const char *pszServiceName = NULL;
+			const char *pszDisplayName = NULL;
+			const char *pszUser =        NULL;
+			const char *pszPwd =         NULL;
+			const char *pszBinaryPath =  NULL;
+			const char *pszParameters =  NULL;
+			const char *pszLoadOrder =   NULL;
+			const char *pszDepend =      NULL;
+			const char *pszDescription = NULL;
 			DWORD  dwTagId =        0;
 			DWORD  *pdwTagId =      NULL;
 			DWORD dwAccess =        SERVICE_ALL_ACCESS;
@@ -1757,7 +1760,8 @@ ConfigureService( pSvServiceInfo )
 				AV *pAv = NULL;
 				if( NULL != ( pAv = HASH_GET_AV( pHv, KEYWORD_SERVICE_DEPENDENCIES ) ) )
 				{
-					LPTSTR pszBuffer = pszDepend = szDependencies;
+					LPTSTR pszBuffer = szDependencies;
+					pszDepend = szDependencies;
 					// av_len() returns -1 if no entries. Otherwise it returns the 
 					// largest index number in the array.
 					DWORD dwCount = av_len( pAv ) + 1;
@@ -1773,23 +1777,23 @@ ConfigureService( pSvServiceInfo )
 
 			if( HASH_KEY_EXISTS( pHv, KEYWORD_SERVICE_TAG_ID ) )
 			{
-				dwTagId = HASH_GET_IV( pHv, KEYWORD_SERVICE_TAG_ID );
+                                dwTagId = (DWORD)HASH_GET_IV( pHv, KEYWORD_SERVICE_TAG_ID );
 				pdwTagId = &dwTagId;
 			}
 
 			if( HASH_KEY_EXISTS( pHv, KEYWORD_SERVICE_TYPE ) )
 			{
-				dwServiceType = HASH_GET_IV( pHv, KEYWORD_SERVICE_TYPE );
+                                dwServiceType = (DWORD)HASH_GET_IV( pHv, KEYWORD_SERVICE_TYPE );
 			}
 
 			if( HASH_KEY_EXISTS( pHv, KEYWORD_SERVICE_START_TYPE ) )
 			{
-				dwStartType = HASH_GET_IV( pHv, KEYWORD_SERVICE_START_TYPE );
+                                dwStartType = (DWORD)HASH_GET_IV( pHv, KEYWORD_SERVICE_START_TYPE );
 			}
 
 			if( HASH_KEY_EXISTS( pHv, KEYWORD_SERVICE_ERROR_CONTROL ) )
 			{
-				dwErrorControl = HASH_GET_IV( pHv, KEYWORD_SERVICE_ERROR_CONTROL );
+                                dwErrorControl = (DWORD)HASH_GET_IV( pHv, KEYWORD_SERVICE_ERROR_CONTROL );
 			}
 
 			OPEN_SERVICE_CONTROL_MANAGER( pszMachine )
@@ -1857,8 +1861,8 @@ QueryServiceConfig( pSvServiceInfo )
 		{
 			TCHAR szServiceName[ 256 ];
 			TCHAR szMachineName[ 256 ];
-			LPTSTR pszServiceName = HASH_GET_PV( pHv, KEYWORD_SERVICE_NAME );
-			LPTSTR pszMachineName = HASH_GET_PV( pHv, KEYWORD_SERVICE_MACHINE );
+			const char *pszServiceName = HASH_GET_PV( pHv, KEYWORD_SERVICE_NAME );
+			const char *pszMachineName = HASH_GET_PV( pHv, KEYWORD_SERVICE_MACHINE );
 
 			// Copy the service name to a local buffer so we can clear out the
 			// hash...
@@ -2063,24 +2067,24 @@ State( ... )
 				{
 					if( HASH_KEY_EXISTS( pHv, KEYWORD_STATE_STATE ) )
 					{
-        				dwState     = HASH_GET_IV( pHv, KEYWORD_STATE_STATE );
+                                                dwState     = (DWORD)HASH_GET_IV( pHv, KEYWORD_STATE_STATE );
 					}
 					if( HASH_KEY_EXISTS( pHv, KEYWORD_STATE_WAIT_HINT ) )
 					{
-						dwWaitHint  = HASH_GET_IV( pHv, KEYWORD_STATE_WAIT_HINT );
+                                                dwWaitHint  = (DWORD)HASH_GET_IV( pHv, KEYWORD_STATE_WAIT_HINT );
 					}
 					if( HASH_KEY_EXISTS( pHv, KEYWORD_STATE_ERROR ) )
 					{
-						dwError     = HASH_GET_IV( pHv, KEYWORD_STATE_ERROR );
+                                                dwError     = (DWORD)HASH_GET_IV( pHv, KEYWORD_STATE_ERROR );
 					}
 				}
 				else
 				{
-					dwState = SvIV( pSv );
+                                        dwState = (DWORD)SvIV( pSv );
 					if( 2 == items )
 					{
 						// Assume that the hint was in milliseconds
-						dwWaitHint = SvIV( ST( 1 ) );
+                                                dwWaitHint = (DWORD)SvIV( ST( 1 ) );
 					}
 				}
 				
@@ -2120,11 +2124,11 @@ QueryLastMessage( ... )
 
 BOOL
 ShowService( pszWindowStation = TEXT( "Winsta0" ), ... )
-	LPTSTR pszWindowStation
+	const char *pszWindowStation
 
 	PREINIT:
 		BOOL fResult;
-		LPTSTR pszDesktop = TEXT( "Default" );
+		const char *pszDesktop = TEXT( "Default" );
 
 	CODE:
 	{
@@ -2202,7 +2206,7 @@ Timeout( ... )
 
 		if( items )
 		{
-			gdwHandlerTimeout = SvIV( ST( 0 ) );
+                        gdwHandlerTimeout = (DWORD)SvIV( ST( 0 ) );
 		}
 		RETVAL = gdwHandlerTimeout;
 	}
@@ -2212,7 +2216,7 @@ Timeout( ... )
 
 
 
-DWORD
+UV
 GetServiceHandle()
 
 	CODE:	
@@ -2222,7 +2226,7 @@ GetServiceHandle()
 			croak( TEXT( "Usage: " EXTENSION "::GetServiceHandle()\n" ) );
 		}
 
-		RETVAL = (DWORD) ghService;
+		RETVAL = PTR2UV(ghService);
 	}
 
 	OUTPUT:
@@ -2242,7 +2246,7 @@ AcceptedControls( ... )
 
 		if( 0 < items )
 		{
-			gdwControlsAccepted = SvIV( ST( 0 ) );
+                        gdwControlsAccepted = (DWORD)SvIV( ST( 0 ) );
 		}
 		RETVAL = gdwControlsAccepted;
 	}
@@ -2526,7 +2530,7 @@ GetSecurity( pszMachine, pszServiceName )
 
 
 
-LPTSTR
+const char *
 DebugOutputPath( ... )
 
 	CODE:
