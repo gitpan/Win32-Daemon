@@ -1,18 +1,16 @@
 --- #YAML:1.0
 name: Win32-Daemon
 abstract: Enabling Win32 Perl scripts to run as a true Win32 services.
-version: 20110117
+version: 20131206
 author:
   - Dave Roth
   - libwin32 project <libwin32@perl.org>
 license: perl
 requires: 
-  perl: 5.6
+  perl: 5.006
 resources:
   license: http://dev.perl.org/licenses
-  homepage: http://code.google.com/p/libwin32
-  repository: http://libwin32.googlecode.com/svn/trunk
-  MailingList: http://groups.google.com/group/perl.libwin32
+  repository: https://github.com/jandubois/win32-daemon/
 no_index:
   directory:
     - t
